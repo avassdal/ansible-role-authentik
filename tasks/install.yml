@@ -330,6 +330,8 @@
       - "{{ authentik_data_dir }}/traefik:/etc/traefik"
       - "{{ authentik_data_dir }}/letsencrypt:/letsencrypt"
     command:
+      - "--log.level=DEBUG"
+      - "--certificatesresolvers.domeneshop.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--api.insecure=false"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -339,6 +341,7 @@
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.domeneshop.acme.dnschallenge=true"
       - "--certificatesresolvers.domeneshop.acme.dnschallenge.provider=domeneshop"
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge.delaybeforecheck=30"
       - "--certificatesresolvers.domeneshop.acme.email={{ authentik_email_from }}"
       - "--certificatesresolvers.domeneshop.acme.storage=/letsencrypt/acme.json"
     env:
