@@ -350,9 +350,11 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
-- name: Update Authentik container with Traefik labels
+- name: Connect Authentik container to Traefik network and add labels
   community.docker.docker_container:
     name: "{{ authentik_container_name }}"
+    image: "{{ authentik_container_image }}"
+    networks_cli_compatible: true
     networks:
       - name: "{{ authentik_container_network }}"
       - name: traefik
