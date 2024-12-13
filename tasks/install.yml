@@ -1,5 +1,13 @@
 ---
 
+- name: Wait for container to be accessible
+  ansible.builtin.wait_for:
+    host: "{{ proxmox_lxc_container_hostname }}"
+    port: 22
+    delay: 10
+    timeout: 300
+  delegate_to: localhost
+
 - name: Install required packages
   ansible.builtin.apt:
     name:
