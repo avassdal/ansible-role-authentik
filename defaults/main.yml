@@ -62,6 +62,7 @@ authentik_email_from: "noreply@{{ authentik_hostname }}"
 #   AUTHENTIK_DISABLE_UPDATE_CHECK=true
 authentik_environment_variables_extension: ''
 
+authentik_container_name: "authentik"
 authentik_container_network: '{{ authentik_identifier }}'
 
 # Must be one of debug, info, warning, error, critical
