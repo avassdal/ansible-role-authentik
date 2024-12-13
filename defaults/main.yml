@@ -112,12 +112,13 @@ authentik_container_labels_traefik_priority: 10
 authentik_container_labels_traefik_tls: true
 authentik_container_labels_traefik_tls_certResolver: domeneshop
 authentik_traefik_domain: ''  # Full domain name for Traefik (e.g., auth.example.com)
-authentik_container_labels_traefik_hostname: "{{ authentik_traefik_domain }}"
-authentik_container_labels_traefik_rule: "Host(`{{ authentik_container_labels_traefik_hostname }}`)"
+authentik_container_labels_traefik_hostname: "{{ authentik_hostname }}"
+authentik_container_labels_traefik_rule: "Host(`{{ authentik_hostname }}`)"
 
 # Traefik DNS configuration
 authentik_traefik_domeneshop_api_token: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
 authentik_traefik_domeneshop_api_secret: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
+authentik_container_labels_traefik_acme_email: "{{ authentik_email_from }}"  # Email address for Let's Encrypt notifications
 
 # Controls which additional headers to attach to all HTTP requests.
 # To add your own custom request headers, use `authentik_container_labels_traefik_additional_request_headers_custom`
