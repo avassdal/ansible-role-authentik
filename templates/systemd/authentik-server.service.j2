@@ -23,7 +23,9 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			-p {{ authentik_container_http_host_bind_port }}:{{ authentik_container_http_port }} \
 			{% endif %}
 			--env-file={{ authentik_env_path }} \
+			{% if authentik_container_labels_traefik_enabled %}
 			--label-file={{ authentik_base_path }}/labels \
+			{% endif %}
 			--health-interval={{ authentik_container_health_interval }} \
 			--mount type=bind,src={{ authentik_certs_path }},dst=/certs \
 			--mount type=bind,src={{ authentik_media_path }},dst=/media \
