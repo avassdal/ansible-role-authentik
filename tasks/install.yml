@@ -135,6 +135,19 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
+- name: Create required directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  with_items:
+    - "{{ authentik_base_path }}/postgres"
+    - "{{ authentik_base_path }}/redis"
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
 - name: Start PostgreSQL container
   community.docker.docker_container:
     name: "{{ authentik_identifier }}-postgres"
@@ -149,6 +162,19 @@
       POSTGRES_DB: "{{ authentik_database_name }}"
     volumes:
       - "{{ authentik_base_path }}/postgres:/var/lib/postgresql/data"
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Wait for PostgreSQL to be ready
+  community.docker.docker_container_exec:
+    container: "{{ authentik_identifier }}-postgres"
+    command: pg_isready -U {{ authentik_database_username }} -d {{ authentik_database_name }}
+  register: result
+  until: result.rc == 0
+  retries: 30
+  delay: 2
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
