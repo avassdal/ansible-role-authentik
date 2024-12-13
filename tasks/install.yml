@@ -288,6 +288,80 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
+- name: Create Traefik network
+  community.docker.docker_network:
+    name: traefik
+    driver: bridge
+    state: present
+  when: authentik_container_labels_traefik_enabled | bool
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Create Traefik container
+  community.docker.docker_container:
+    name: traefik
+    image: traefik:v2.10
+    state: started
+    restart_policy: unless-stopped
+    networks:
+      - name: traefik
+      - name: "{{ authentik_container_network }}"
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "{{ authentik_data_dir }}/traefik:/etc/traefik"
+      - "{{ authentik_data_dir }}/letsencrypt:/letsencrypt"
+    command:
+      - "--api.insecure=false"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entryPoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entryPoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge=true"
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge.provider=domeneshop"
+      - "--certificatesresolvers.domeneshop.acme.email={{ authentik_email_from }}"
+      - "--certificatesresolvers.domeneshop.acme.storage=/letsencrypt/acme.json"
+    env:
+      DOMENESHOP_TOKEN: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
+      DOMENESHOP_SECRET: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
+  when: authentik_container_labels_traefik_enabled | bool
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Update Authentik container with Traefik labels
+  community.docker.docker_container:
+    name: "{{ authentik_container_name }}"
+    networks:
+      - name: "{{ authentik_container_network }}"
+      - name: traefik
+    labels:
+      traefik.enable: "{{ authentik_container_labels_traefik_enabled | string }}"
+      traefik.docker.network: "{{ authentik_container_labels_traefik_docker_network }}"
+      traefik.http.routers.authentik.entrypoints: "{{ authentik_container_labels_traefik_entrypoints }}"
+      traefik.http.routers.authentik.rule: "{{ authentik_container_labels_traefik_rule }}"
+      traefik.http.routers.authentik.priority: "{{ authentik_container_labels_traefik_priority }}"
+      traefik.http.routers.authentik.tls: "{{ authentik_container_labels_traefik_tls | string }}"
+      traefik.http.routers.authentik.tls.certresolver: "{{ authentik_container_labels_traefik_tls_certResolver }}"
+      traefik.http.middlewares.authentik-headers.headers.customResponseHeaders.Strict-Transport-Security: "{{ authentik_container_labels_traefik_additional_response_headers_auto['Strict-Transport-Security'] }}"
+      traefik.http.middlewares.authentik-headers.headers.customResponseHeaders.X-Content-Type-Options: "{{ authentik_container_labels_traefik_additional_response_headers_auto['X-Content-Type-Options'] }}"
+      traefik.http.middlewares.authentik-headers.headers.customResponseHeaders.X-Frame-Options: "{{ authentik_container_labels_traefik_additional_response_headers_auto['X-Frame-Options'] }}"
+      traefik.http.middlewares.authentik-headers.headers.customResponseHeaders.Referrer-Policy: "{{ authentik_container_labels_traefik_additional_response_headers_auto['Referrer-Policy'] }}"
+      traefik.http.middlewares.authentik-headers.headers.customResponseHeaders.Content-Security-Policy: "{{ authentik_container_labels_traefik_additional_response_headers_auto['Content-Security-Policy'] }}"
+      traefik.http.routers.authentik.middlewares: authentik-headers
+  when: authentik_container_labels_traefik_enabled | bool
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
 - name: Ensure authentik.service installed
   ansible.builtin.template:
     src: "{{ item.src }}"

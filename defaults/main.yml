@@ -104,13 +104,12 @@ authentik_container_additional_networks_custom: []
 # See `roles/custom/authentik_authentik/templates/labels.j2` for details.
 #
 # To inject your own other container labels, see `authentik_container_labels_additional_labels`.
-authentik_container_labels_traefik_enabled: false
-authentik_container_labels_traefik_docker_network: ""
-authentik_container_labels_traefik_entrypoints: web-secure
-authentik_container_labels_traefik_priority: 0
-authentik_container_labels_traefik_tls: "{{ authentik_container_labels_traefik_entrypoints != 'web' }}"
-authentik_container_labels_traefik_tls_certResolver: default  # noqa var-naming
-
+authentik_container_labels_traefik_enabled: true
+authentik_container_labels_traefik_docker_network: "{{ authentik_container_network }}"
+authentik_container_labels_traefik_entrypoints: websecure
+authentik_container_labels_traefik_priority: 10
+authentik_container_labels_traefik_tls: true
+authentik_container_labels_traefik_tls_certResolver: domeneshop
 authentik_container_labels_traefik_hostname: "{{ authentik_hostname }}"
 authentik_container_labels_traefik_rule: "Host(`{{ authentik_container_labels_traefik_hostname }}`)"
 
@@ -123,16 +122,12 @@ authentik_container_labels_traefik_additional_request_headers_custom: {}
 # Controls which additional headers to attach to all HTTP responses.
 # To add your own custom response headers, use `authentik_container_labels_traefik_additional_response_headers_custom`
 authentik_container_labels_traefik_additional_response_headers: "{{ authentik_container_labels_traefik_additional_response_headers_auto | combine(authentik_container_labels_traefik_additional_response_headers_custom) }}"
-authentik_container_labels_traefik_additional_response_headers_auto: |
-  {{
-    {}
-    | combine ({'X-XSS-Protection': authentik_server_http_header_xss_protection} if authentik_server_http_header_xss_protection else {})
-    | combine ({'X-Frame-Options': authentik_server_http_header_frame_options} if authentik_server_http_header_frame_options else {})
-    | combine ({'X-Content-Type-Options': authentik_server_http_header_content_type_options} if authentik_server_http_header_content_type_options else {})
-    | combine ({'Content-Security-Policy': authentik_server_http_header_content_security_policy} if authentik_server_http_header_content_security_policy else {})
-    | combine ({'Permission-Policy': authentik_server_http_header_content_permission_policy} if authentik_server_http_header_content_permission_policy else {})
-    | combine ({'Strict-Transport-Security': authentik_server_http_header_strict_transport_security} if authentik_server_http_header_strict_transport_security and authentik_container_labels_traefik_tls else {})
-  }}
+authentik_container_labels_traefik_additional_response_headers_auto:
+  Strict-Transport-Security: "max-age=31536000; includeSubDomains"
+  X-Content-Type-Options: "nosniff"
+  X-Frame-Options: "DENY"
+  Referrer-Policy: "strict-origin-when-cross-origin"
+  Content-Security-Policy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
 authentik_container_labels_traefik_additional_response_headers_custom: {}
 
 # Specifies how often the container health-check will run.
