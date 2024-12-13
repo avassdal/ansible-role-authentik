@@ -342,8 +342,8 @@
       - "--certificatesresolvers.domeneshop.acme.email={{ authentik_email_from }}"
       - "--certificatesresolvers.domeneshop.acme.storage=/letsencrypt/acme.json"
     env:
-      DOMENESHOP_TOKEN: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
-      DOMENESHOP_SECRET: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
+      DOMENESHOP_API_TOKEN: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
+      DOMENESHOP_API_SECRET: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
   when: authentik_container_labels_traefik_enabled | bool
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:

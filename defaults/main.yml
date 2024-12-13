@@ -112,8 +112,8 @@ authentik_container_labels_traefik_priority: 10
 authentik_container_labels_traefik_tls: true
 authentik_container_labels_traefik_tls_certResolver: domeneshop
 authentik_traefik_domain: ''  # Full domain name for Traefik (e.g., auth.example.com)
-authentik_container_labels_traefik_hostname: "{{ authentik_hostname }}"
-authentik_container_labels_traefik_rule: "Host(`{{ authentik_hostname }}`)"
+authentik_container_labels_traefik_hostname: "{{ authentik_traefik_domain }}"
+authentik_container_labels_traefik_rule: "Host(`{{ authentik_traefik_domain }}`)"
 
 # Traefik DNS configuration
 authentik_traefik_domeneshop_api_token: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
