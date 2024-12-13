@@ -232,3 +232,6 @@ authentik_metrics_container_labels_traefik_rule: "Host(`{{ authentik_hostname }}
 authentik_metrics_container_labels_traefik_entrypoints: web-secure
 authentik_metrics_container_labels_traefik_tls: "{{ authentik_metrics_container_labels_traefik_entrypoints != 'web' }}"
 authentik_metrics_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# Data directory for Authentik and related services
+authentik_data_dir: /var/lib/authentik

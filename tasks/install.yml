@@ -299,6 +299,20 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
+- name: Create directories for Traefik
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ authentik_data_dir }}/traefik"
+    - "{{ authentik_data_dir }}/letsencrypt"
+  when: authentik_container_labels_traefik_enabled | bool
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
 - name: Create Traefik container
   community.docker.docker_container:
     name: traefik
