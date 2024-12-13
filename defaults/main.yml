@@ -21,17 +21,15 @@ authentik_gid: ''
 
 authentik_base_path: "/{{ authentik_identifier }}"
 
-
 authentik_certs_path: "{{ authentik_base_path }}/certs"
 authentik_custon_templates_path: "{{ authentik_base_path }}/custom-templates"
 authentik_media_path: "{{ authentik_base_path }}/media"
-
 
 authentik_env_path: "{{ authentik_base_path }}/env"
 
 authentik_secret_key: ''
 
-authentik_database_hostname: ''
+authentik_database_hostname: "{{ authentik_identifier }}-postgres"
 authentik_database_port: 5432
 authentik_database_name: authentik
 authentik_database_username: ''
@@ -40,7 +38,7 @@ authentik_database_password: ''
 # By default, we expect a local container (without SSL), so attempting SSL connections is not necessary.
 authentik_database_sslmode: disable
 
-authentik_config_redis_hostname: ''
+authentik_config_redis_hostname: "{{ authentik_identifier }}-redis"
 authentik_config_redis_port: 6379
 authentik_config_redis_database: 0
 authentik_config_redis_url: "redis://{{ authentik_config_redis_hostname }}:{{ authentik_config_redis_port }}/{{ authentik_config_redis_database }}"
@@ -66,7 +64,6 @@ authentik_environment_variables_extension: ''
 
 authentik_container_network: '{{ authentik_identifier }}'
 
-
 # Must be one of debug, info, warning, error, critical
 authentik_loglevel: error
 
@@ -79,7 +76,6 @@ authentik_container_image_force_pull: "{{ authentik_container_image.endswith(':l
 ## SERVER ##
 ############
 
-
 authentik_server_identifier: "{{ authentik_identifier }}-server"
 
 # List of systemd services that authentik-api.service depends on
@@ -87,7 +83,6 @@ authentik_server_systemd_required_services_list: "{{ authentik_server_systemd_re
 authentik_server_systemd_required_services_list_default: ['docker.service']
 authentik_server_systemd_required_services_list_auto: []
 authentik_server_systemd_required_services_list_custom: []
-
 
 authentik_server_version: "{{ authentik_version }}"
 
@@ -105,7 +100,6 @@ authentik_container_additional_networks: "{{ authentik_container_additional_netw
 authentik_container_additional_networks_auto: []
 authentik_container_additional_networks_custom: []
 
-
 # authentik_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
 # See `roles/custom/authentik_authentik/templates/labels.j2` for details.
 #
@@ -121,11 +115,10 @@ authentik_container_labels_traefik_hostname: "{{ authentik_hostname }}"
 authentik_container_labels_traefik_rule: "Host(`{{ authentik_container_labels_traefik_hostname }}`)"
 
 # Controls which additional headers to attach to all HTTP requests.
-# To add your own custom request headers, use `authentik_container_labels_traefik_additional_response_headers_custom`
+# To add your own custom request headers, use `authentik_container_labels_traefik_additional_request_headers_custom`
 authentik_container_labels_traefik_additional_request_headers: "{{ authentik_container_labels_traefik_additional_request_headers_auto | combine(authentik_container_labels_traefik_additional_request_headers_custom) }}"
 authentik_container_labels_traefik_additional_request_headers_auto: {}
 authentik_container_labels_traefik_additional_request_headers_custom: {}
-
 
 # Controls which additional headers to attach to all HTTP responses.
 # To add your own custom response headers, use `authentik_container_labels_traefik_additional_response_headers_custom`
@@ -204,7 +197,6 @@ authentik_server_floc_optout_enabled: true
 # See: `authentik_http_header_strict_transport_security`
 authentik_server_hsts_preload_enabled: false
 
-
 # authentik_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
 # See `roles/custom/collabora_online/templates/labels.j2` for details.
 #
@@ -225,7 +217,6 @@ authentik_worker_identifier: "{{ authentik_identifier }}-worker"
 authentik_worker_version: "{{ authentik_version }}"
 
 authentik_worker_systemd_required_services_list: ['docker.service', '{{ authentik_server_identifier }}.service']
-
 
 authentik_worker_container_network: '{{ authentik_container_network }}'
 

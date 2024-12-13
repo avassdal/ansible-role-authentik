@@ -127,10 +127,44 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
-- name: Ensure authentik network is created in Docker
+- name: Create Docker network for Authentik
   community.docker.docker_network:
     name: "{{ authentik_container_network }}"
-    driver: bridge
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Start PostgreSQL container
+  community.docker.docker_container:
+    name: "{{ authentik_identifier }}-postgres"
+    image: postgres:15
+    state: started
+    restart_policy: always
+    networks:
+      - name: "{{ authentik_container_network }}"
+    env:
+      POSTGRES_USER: "{{ authentik_database_username }}"
+      POSTGRES_PASSWORD: "{{ authentik_database_password }}"
+      POSTGRES_DB: "{{ authentik_database_name }}"
+    volumes:
+      - "{{ authentik_base_path }}/postgres:/var/lib/postgresql/data"
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Start Redis container
+  community.docker.docker_container:
+    name: "{{ authentik_identifier }}-redis"
+    image: redis:7
+    state: started
+    restart_policy: always
+    networks:
+      - name: "{{ authentik_container_network }}"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - "{{ authentik_base_path }}/redis:/data"
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -212,76 +246,6 @@
     mode: 0640
   with_items:
     - {src: "{{ role_path }}/templates/env.j2", dest: "{{ authentik_base_path }}/env"}
-  delegate_to: "{{ proxmox_lxc_container_hostname }}"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
-
-- name: Install PostgreSQL
-  ansible.builtin.apt:
-    name:
-      - postgresql
-      - postgresql-contrib
-      - python3-psycopg2
-    state: present
-    update_cache: true
-  become: true
-  delegate_to: "{{ proxmox_lxc_container_hostname }}"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
-
-- name: Start and enable PostgreSQL
-  ansible.builtin.systemd:
-    name: postgresql
-    state: started
-    enabled: true
-  become: true
-  delegate_to: "{{ proxmox_lxc_container_hostname }}"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
-
-- name: Create PostgreSQL user
-  community.postgresql.postgresql_user:
-    name: "{{ authentik_database_username }}"
-    password: "{{ authentik_database_password }}"
-    role_attr_flags: CREATEDB,SUPERUSER
-  become: true
-  become_user: postgres
-  delegate_to: "{{ proxmox_lxc_container_hostname }}"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
-
-- name: Create PostgreSQL database
-  community.postgresql.postgresql_db:
-    name: "{{ authentik_database_name }}"
-    owner: "{{ authentik_database_username }}"
-    encoding: UTF-8
-  become: true
-  become_user: postgres
-  delegate_to: "{{ proxmox_lxc_container_hostname }}"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
-
-- name: Install Redis
-  ansible.builtin.apt:
-    name: redis-server
-    state: present
-  become: true
-  delegate_to: "{{ proxmox_lxc_container_hostname }}"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
-
-- name: Start and enable Redis
-  ansible.builtin.systemd:
-    name: redis-server
-    state: started
-    enabled: true
-  become: true
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
