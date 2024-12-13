@@ -1,4 +1,6 @@
 ---
+# Base paths
+devture_systemd_docker_base_systemd_path: /etc/systemd/system
 
 # Project source code URL: https://github.com/goauthentik/authentik
 
