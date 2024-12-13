@@ -4,6 +4,9 @@ devture_systemd_docker_base_systemd_path: /etc/systemd/system
 devture_systemd_docker_base_host_command_sh: /bin/sh
 devture_systemd_docker_base_host_command_docker: /usr/bin/docker
 
+# Systemd service configuration
+devture_systemd_docker_base_container_stop_grace_time_seconds: 10
+
 # Project source code URL: https://github.com/goauthentik/authentik
 
 authentik_enabled: true
