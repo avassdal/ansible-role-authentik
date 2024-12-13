@@ -8,6 +8,15 @@
     timeout: 300
   delegate_to: localhost
 
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+  become: true
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
 - name: Install required packages
   ansible.builtin.apt:
     name:
@@ -26,6 +35,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Add Docker GPG key
   ansible.builtin.apt_key:
@@ -35,6 +45,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Add Docker repository
   ansible.builtin.apt_repository:
@@ -44,6 +55,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Install Docker
   ansible.builtin.apt:
@@ -57,6 +69,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Create Docker group
   ansible.builtin.group:
@@ -66,6 +79,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Add authentik user to Docker group
   ansible.builtin.user:
@@ -76,6 +90,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Configure Docker daemon for rootless mode
   ansible.builtin.copy:
@@ -89,6 +104,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure Docker service is started and enabled
   ansible.builtin.service:
@@ -99,15 +115,17 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Install Docker Python package
-  ansible.builtin.pip:
-    name: docker
+  ansible.builtin.apt:
+    name: python3-docker
     state: present
   become: true
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik network is created in Docker
   community.docker.docker_network:
@@ -116,6 +134,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Create authentik group
   ansible.builtin.group:
@@ -126,6 +145,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Create authentik user
   ansible.builtin.user:
@@ -139,6 +159,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik paths exists
   ansible.builtin.file:
@@ -155,6 +176,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik traefik labels are installed
   ansible.builtin.template:
@@ -169,6 +191,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik traefik labels are not installed
   ansible.builtin.file:
@@ -178,6 +201,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik configuration is deployed
   ansible.builtin.template:
@@ -191,6 +215,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik container image is pulled
   community.docker.docker_image:
@@ -201,6 +226,7 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Ensure authentik.service installed
   ansible.builtin.template:
@@ -213,3 +239,4 @@
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
