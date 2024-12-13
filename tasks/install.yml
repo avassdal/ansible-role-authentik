@@ -134,6 +134,13 @@
     - {src: "{{ role_path }}/templates/labels.j2", dest: "{{ authentik_base_path }}/labels"}
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
 
+- name: Ensure authentik traefik labels are not installed
+  ansible.builtin.file:
+    path: "{{ authentik_base_path }}/labels"
+    state: absent
+  when: not authentik_container_labels_traefik_enabled | bool
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+
 - name: Ensure authentik configuration is deployed
   ansible.builtin.template:
     src: "{{ item.src }}"
