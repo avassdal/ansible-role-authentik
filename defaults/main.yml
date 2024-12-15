@@ -117,8 +117,8 @@ authentik_container_labels_traefik_rule: "Host(`{{ authentik_traefik_domain }}`)
 
 # Traefik DNS configuration
 # Domeneshop API credentials for Traefik DNS challenge
-domeneshop_api_token: "{{ lookup('env', 'DOMENESHOP_API_TOKEN') }}"
-domeneshop_api_secret: "{{ lookup('env', 'DOMENESHOP_API_SECRET') }}"
+domeneshop_api_token: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
+domeneshop_api_secret: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
 authentik_traefik_domeneshop_api_token: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
 authentik_traefik_domeneshop_api_secret: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
 authentik_container_labels_traefik_acme_email: "{{ authentik_email_from }}"  # Email address for Let's Encrypt notifications
