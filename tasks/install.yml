@@ -331,7 +331,6 @@
       - "{{ authentik_data_dir }}/letsencrypt:/letsencrypt"
     command:
       - "--log.level=DEBUG"
-      - "--certificatesresolvers.domeneshop.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--api.insecure=false"
       - "--providers.docker=true"
       - "--providers.docker.exposedbydefault=false"
@@ -345,6 +344,7 @@
       - "--certificatesresolvers.domeneshop.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
       - "--certificatesresolvers.domeneshop.acme.email={{ authentik_email_from }}"
       - "--certificatesresolvers.domeneshop.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.domeneshop.acme.caserver=https://acme-v02.api.letsencrypt.org/directory"
     env:
       DOMENESHOP_API_TOKEN: "{{ domeneshop_api_token }}"
       DOMENESHOP_API_SECRET: "{{ domeneshop_api_secret }}"
