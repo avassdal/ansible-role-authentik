@@ -341,12 +341,14 @@
       - "--entrypoints.websecure.address=:443"
       - "--certificatesresolvers.domeneshop.acme.dnschallenge=true"
       - "--certificatesresolvers.domeneshop.acme.dnschallenge.provider=domeneshop"
-      - "--certificatesresolvers.domeneshop.acme.dnschallenge.delaybeforecheck=30"
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge.delaybeforecheck=60"
+      - "--certificatesresolvers.domeneshop.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53"
       - "--certificatesresolvers.domeneshop.acme.email={{ authentik_email_from }}"
       - "--certificatesresolvers.domeneshop.acme.storage=/letsencrypt/acme.json"
     env:
-      DOMENESHOP_API_TOKEN: "{{ lookup('env', 'DOMENESHOP_TOKEN') }}"
-      DOMENESHOP_API_SECRET: "{{ lookup('env', 'DOMENESHOP_SECRET') }}"
+      DOMENESHOP_API_TOKEN: "{{ domeneshop_api_token }}"
+      DOMENESHOP_API_SECRET: "{{ domeneshop_api_secret }}"
+      DOMENESHOP_HTTP_TIMEOUT: "60"
   when: authentik_container_labels_traefik_enabled | bool
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
