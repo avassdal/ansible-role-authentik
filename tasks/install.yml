@@ -395,8 +395,8 @@
     dest: "{{ item.dest }}"
     mode: 0644
   with_items:
-    - {src: "{{ role_path }}/templates/systemd/authentik-server.service.j2", dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ authentik_server_identifier }}.service"}
-    - {src: "{{ role_path }}/templates/systemd/authentik-worker.service.j2", dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ authentik_worker_identifier }}.service"}
+    - {src: "{{ role_path }}/templates/systemd/authentik-server.service.j2", dest: "{{ devture_systemd_docker_base_systemd_path }}/authentik-server.service"}
+    - {src: "{{ role_path }}/templates/systemd/authentik-worker.service.j2", dest: "{{ devture_systemd_docker_base_systemd_path }}/authentik-worker.service"}
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -411,14 +411,28 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
+- name: Restart Authentik services
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+    enabled: true
+  with_items:
+    - authentik-server.service
+    - authentik-worker.service
+  become: true
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
 - name: Enable and start authentik services
   ansible.builtin.systemd:
     name: "{{ item }}"
     state: started
     enabled: true
   with_items:
-    - "{{ authentik_server_identifier }}.service"
-    - "{{ authentik_worker_identifier }}.service"
+    - authentik-server.service
+    - authentik-worker.service
   become: true
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
