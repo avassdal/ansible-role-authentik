@@ -129,7 +129,7 @@
 
 - name: Create Docker network for Authentik
   community.docker.docker_network:
-    name: "{{ authentik_container_network }}"
+    name: authentik
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -151,11 +151,13 @@
 - name: Start PostgreSQL container
   community.docker.docker_container:
     name: "{{ authentik_identifier }}-postgres"
-    image: postgres:15
+    image: postgres:16-alpine
+    pull: true
+    recreate: true
     state: started
     restart_policy: always
     networks:
-      - name: "{{ authentik_container_network }}"
+      - name: authentik
     env:
       POSTGRES_USER: "{{ authentik_database_username }}"
       POSTGRES_PASSWORD: "{{ authentik_database_password }}"
@@ -183,11 +185,13 @@
 - name: Start Redis container
   community.docker.docker_container:
     name: "{{ authentik_identifier }}-redis"
-    image: redis:7
+    image: redis:alpine
+    pull: true
+    recreate: true
     state: started
     restart_policy: always
     networks:
-      - name: "{{ authentik_container_network }}"
+      - name: authentik
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
       - "{{ authentik_base_path }}/redis:/data"
@@ -279,10 +283,8 @@
 
 - name: Ensure authentik container image is pulled
   community.docker.docker_image:
-    name: "{{ item.image }}"
+    name: "ghcr.io/goauthentik/server:latest"
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
-  with_items:
-    - {image: "{{ authentik_container_image }}"}
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -316,12 +318,14 @@
 - name: Create Traefik container
   community.docker.docker_container:
     name: traefik
-    image: traefik:v2.10
+    image: "traefik:latest"
+    pull: true
+    recreate: true
     state: started
     restart_policy: unless-stopped
     networks:
+      - name: authentik
       - name: traefik
-      - name: "{{ authentik_container_network }}"
     ports:
       - "80:80"
       - "443:443"
@@ -358,10 +362,12 @@
 - name: Connect Authentik container to Traefik network and add labels
   community.docker.docker_container:
     name: "{{ authentik_container_name }}"
-    image: "{{ authentik_container_image }}"
+    image: "ghcr.io/goauthentik/server:latest"
+    pull: true
+    recreate: true
     networks_cli_compatible: true
     networks:
-      - name: "{{ authentik_container_network }}"
+      - name: authentik
       - name: traefik
     labels:
       traefik.enable: "{{ authentik_container_labels_traefik_enabled | string }}"
