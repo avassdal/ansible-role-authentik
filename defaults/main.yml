@@ -19,6 +19,8 @@ authentik_hostname: ''
 authentik_uid: ''
 authentik_gid: ''
 
+authentik_log_level: trace
+
 authentik_base_path: "/{{ authentik_identifier }}"
 
 authentik_certs_path: "{{ authentik_base_path }}/certs"
