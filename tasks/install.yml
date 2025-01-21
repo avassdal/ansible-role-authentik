@@ -151,19 +151,23 @@
 - name: Start PostgreSQL container
   community.docker.docker_container:
     name: "{{ authentik_identifier }}-postgres"
-    image: postgres:16-alpine
+    image: "postgres:{{ authentik_database_version }}"
     pull: true
-    recreate: true
-    state: started
-    restart_policy: always
+    restart_policy: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      start_period: "{{ authentik_database_healthcheck_start_period }}"
+      interval: "{{ authentik_database_healthcheck_interval }}"
+      retries: "{{ authentik_database_healthcheck_retries }}"
+      timeout: "{{ authentik_database_healthcheck_timeout }}"
+    volumes:
+      - "{{ authentik_data_dir }}/database:/var/lib/postgresql/data"
+    env:
+      POSTGRES_PASSWORD: "{{ authentik_postgresql_password }}"
+      POSTGRES_USER: "{{ authentik_postgresql_user }}"
+      POSTGRES_DB: "{{ authentik_postgresql_db }}"
     networks:
       - name: authentik
-    env:
-      POSTGRES_USER: "{{ authentik_database_username }}"
-      POSTGRES_PASSWORD: "{{ authentik_database_password }}"
-      POSTGRES_DB: "{{ authentik_database_name }}"
-    volumes:
-      - "{{ authentik_base_path }}/postgres:/var/lib/postgresql/data"
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -172,7 +176,7 @@
 - name: Wait for PostgreSQL to be ready
   community.docker.docker_container_exec:
     container: "{{ authentik_identifier }}-postgres"
-    command: pg_isready -U {{ authentik_database_username }} -d {{ authentik_database_name }}
+    command: pg_isready -U {{ authentik_postgresql_user }} -d {{ authentik_postgresql_db }}
   register: result
   until: result.rc == 0
   retries: 30
@@ -185,16 +189,20 @@
 - name: Start Redis container
   community.docker.docker_container:
     name: "{{ authentik_identifier }}-redis"
-    image: redis:alpine
+    image: "redis:alpine"
     pull: true
-    recreate: true
-    state: started
-    restart_policy: always
+    restart_policy: unless-stopped
+    command: "--save 60 1 --loglevel warning"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+      start_period: "{{ authentik_redis_healthcheck_start_period }}"
+      interval: "{{ authentik_redis_healthcheck_interval }}"
+      retries: "{{ authentik_redis_healthcheck_retries }}"
+      timeout: "{{ authentik_redis_healthcheck_timeout }}"
+    volumes:
+      - "{{ authentik_data_dir }}/redis:/data"
     networks:
       - name: authentik
-    command: ["redis-server", "--appendonly", "yes"]
-    volumes:
-      - "{{ authentik_base_path }}/redis:/data"
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -367,8 +375,18 @@
     recreate: true
     networks_cli_compatible: true
     user: root
+    command: server
+    restart_policy: unless-stopped
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ authentik_data_dir }}/media:/media"
+      - "{{ authentik_data_dir }}/custom-templates:/templates"
+    env:
+      AUTHENTIK_REDIS__HOST: "{{ authentik_identifier }}-redis"
+      AUTHENTIK_POSTGRESQL__HOST: "{{ authentik_identifier }}-postgres"
+      AUTHENTIK_POSTGRESQL__USER: "{{ authentik_postgresql_user }}"
+      AUTHENTIK_POSTGRESQL__NAME: "{{ authentik_postgresql_db }}"
+      AUTHENTIK_POSTGRESQL__PASSWORD: "{{ authentik_postgresql_password }}"
     networks:
       - name: authentik
       - name: traefik
@@ -387,6 +405,33 @@
       traefik.http.middlewares.authentik-headers.headers.customResponseHeaders.Content-Security-Policy: "{{ authentik_container_labels_traefik_additional_response_headers_auto['Content-Security-Policy'] }}"
       traefik.http.routers.authentik.middlewares: authentik-headers
   when: authentik_container_labels_traefik_enabled | bool
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Start Authentik worker container
+  community.docker.docker_container:
+    name: "{{ authentik_container_name }}-worker"
+    image: "ghcr.io/goauthentik/server:{{ authentik_version }}"
+    pull: true
+    recreate: true
+    command: worker
+    restart_policy: unless-stopped
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ authentik_data_dir }}/media:/media"
+      - "{{ authentik_data_dir }}/certs:/certs"
+      - "{{ authentik_data_dir }}/custom-templates:/templates"
+    env:
+      AUTHENTIK_REDIS__HOST: "{{ authentik_identifier }}-redis"
+      AUTHENTIK_POSTGRESQL__HOST: "{{ authentik_identifier }}-postgres"
+      AUTHENTIK_POSTGRESQL__USER: "{{ authentik_postgresql_user }}"
+      AUTHENTIK_POSTGRESQL__NAME: "{{ authentik_postgresql_db }}"
+      AUTHENTIK_POSTGRESQL__PASSWORD: "{{ authentik_postgresql_password }}"
+    networks:
+      - name: authentik
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
