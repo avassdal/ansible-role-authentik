@@ -34,6 +34,14 @@ authentik_database_port: 5432
 authentik_database_name: authentik
 authentik_database_username: ''
 authentik_database_password: ''
+authentik_database_version: "16-alpine"
+# Health check configuration for PostgreSQL
+authentik_database_healthcheck_test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+authentik_database_healthcheck_interval: "30s"
+authentik_database_healthcheck_timeout: "5s"
+authentik_database_healthcheck_retries: 5
+authentik_database_healthcheck_start_period: "20s"
+
 # Use this to set the sslmode parameter of the SSL connection
 # By default, we expect a local container (without SSL), so attempting SSL connections is not necessary.
 authentik_database_sslmode: disable
@@ -42,6 +50,12 @@ authentik_config_redis_hostname: "{{ authentik_identifier }}-redis"
 authentik_config_redis_port: 6379
 authentik_config_redis_database: 0
 authentik_config_redis_url: "redis://{{ authentik_config_redis_hostname }}:{{ authentik_config_redis_port }}/{{ authentik_config_redis_database }}"
+# Redis health check configuration
+authentik_redis_healthcheck_test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
+authentik_redis_healthcheck_interval: "30s"
+authentik_redis_healthcheck_timeout: "3s"
+authentik_redis_healthcheck_retries: 5
+authentik_redis_healthcheck_start_period: "20s"
 
 # Turn true to use StartTLS (usually on port 587)
 authentik_email_use_tls: false
