@@ -283,7 +283,7 @@
 
 - name: Ensure authentik container image is pulled
   community.docker.docker_image:
-    name: "ghcr.io/goauthentik/server:latest"
+    name: "ghcr.io/goauthentik/server:{{ authentik_version }}"
     source: "{{ 'pull' if ansible_version.major > 2 or ansible_version.minor > 7 else omit }}"
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
@@ -362,7 +362,7 @@
 - name: Connect Authentik container to Traefik network and add labels
   community.docker.docker_container:
     name: "{{ authentik_container_name }}"
-    image: "ghcr.io/goauthentik/server:latest"
+    image: "ghcr.io/goauthentik/server:{{ authentik_version }}"
     pull: true
     recreate: true
     networks_cli_compatible: true
