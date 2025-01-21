@@ -366,6 +366,9 @@
     pull: true
     recreate: true
     networks_cli_compatible: true
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - name: authentik
       - name: traefik
