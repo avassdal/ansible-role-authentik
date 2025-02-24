@@ -114,6 +114,9 @@
     mode: '0644'
   become: true
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
 
 - name: Set Docker socket permissions
   ansible.builtin.file:
