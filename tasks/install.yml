@@ -81,11 +81,42 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
-- name: Add authentik user to Docker group
+- name: Create authentik group
+  ansible.builtin.group:
+    name: authentik
+    gid: 1000
+    state: present
+  become: true
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Add authentik user
   ansible.builtin.user:
     name: authentik
+    uid: 1000
+    group: authentik
     groups: docker
     append: true
+  become: true
+  delegate_to: "{{ proxmox_lxc_container_hostname }}"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
+
+- name: Ensure Authentik directories have correct permissions
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: authentik
+    group: authentik
+    mode: '0755'
+    recurse: true
+  with_items:
+    - "{{ authentik_media_path }}"
+    - "{{ authentik_certs_path }}"
+    - "{{ authentik_custon_templates_path }}"
   become: true
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
@@ -186,6 +217,12 @@
       POSTGRES_DB: "{{ authentik_database_name }}"
     volumes:
       - "{{ authentik_base_path }}/postgres:/var/lib/postgresql/data"
+    healthcheck:
+      test: "{{ authentik_database_healthcheck_test }}"
+      interval: "{{ authentik_database_healthcheck_interval }}"
+      timeout: "{{ authentik_database_healthcheck_timeout }}"
+      retries: "{{ authentik_database_healthcheck_retries }}"
+      start_period: "{{ authentik_database_healthcheck_start_period }}"
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
@@ -214,9 +251,15 @@
     restart_policy: always
     networks:
       - name: authentik
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
     volumes:
       - "{{ authentik_base_path }}/redis:/data"
+    healthcheck:
+      test: "{{ authentik_redis_healthcheck_test }}"
+      interval: "{{ authentik_redis_healthcheck_interval }}"
+      timeout: "{{ authentik_redis_healthcheck_timeout }}"
+      retries: "{{ authentik_redis_healthcheck_retries }}"
+      start_period: "{{ authentik_redis_healthcheck_start_period }}"
   delegate_to: "{{ proxmox_lxc_container_hostname }}"
   vars:
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'

@@ -1,29 +1,34 @@
 ---
 
-- block:
+- name: Include Authentik validation tasks when enabled
+  tags:
+    - setup-all
+    - setup-authentik
+    - install-all
+    - install-authentik
+  block:
     - when: authentik_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+
+- name: Include Authentik installation tasks when enabled
   tags:
     - setup-all
     - setup-authentik
     - install-all
     - install-authentik
-
-- block:
+  block:
     - when: authentik_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
-  vars:
-    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    ansible_user: root
+      vars:
+        ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+        ansible_user: root
+
+- name: Include Authentik uninstallation tasks when disabled
   tags:
     - setup-all
     - setup-authentik
     - install-all
     - install-authentik
-
-- block:
+  block:
     - when: not authentik_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
-  tags:
-    - setup-all
-    - setup-authentik
