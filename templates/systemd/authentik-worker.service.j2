@@ -19,6 +19,7 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--cap-drop=ALL \
 			--cap-add=NET_BIND_SERVICE \
 			--cap-add=SYS_PTRACE \
+			--cap-add=SYS_ADMIN \
 			--network={{ authentik_container_network }} \
 			--env-file={{ authentik_env_path }} \
 			--mount type=bind,src=/var/run/docker.sock,dst=/var/run/docker.sock \
