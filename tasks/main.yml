@@ -12,6 +12,9 @@
 - block:
     - when: authentik_enabled | bool
       ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+  vars:
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    ansible_user: root
   tags:
     - setup-all
     - setup-authentik
