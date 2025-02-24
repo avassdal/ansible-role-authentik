@@ -92,11 +92,23 @@
     ansible_ssh_common_args: '-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     ansible_user: root
 
-- name: Configure Docker daemon for rootless mode
+- name: Configure Docker daemon with secure defaults
   ansible.builtin.copy:
     content: |
       {
-        "userns-remap": "default"
+        "live-restore": true,
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "10m",
+          "max-file": "3"
+        },
+        "default-ulimits": {
+          "nofile": {
+            "Name": "nofile",
+            "Hard": 64000,
+            "Soft": 64000
+          }
+        }
       }
     dest: /etc/docker/daemon.json
     mode: '0644'
