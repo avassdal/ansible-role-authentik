@@ -237,10 +237,6 @@ authentik_server_variables_additional_variables: ''
 ## WORKER ##
 ############
 
-############
-## WORKER ##
-############
-
 authentik_worker_identifier: "{{ authentik_identifier }}-worker"
 
 # List of systemd services that authentik-worker.service depends on
@@ -256,7 +252,6 @@ authentik_worker_container_additional_networks_custom: []
 
 authentik_worker_version: "{{ authentik_version }}"
 
-authentik_worker_systemd_required_services_list: ['docker.service', '{{ authentik_server_identifier }}.service']
 
 authentik_worker_container_network: '{{ authentik_container_network }}'
 
