@@ -12,7 +12,7 @@ devture_systemd_docker_base_container_stop_grace_time_seconds: 10
 authentik_enabled: true
 authentik_identifier: authentik
 
-authentik_version: "2024.12.2"
+authentik_version: "2024.12.3"
 
 authentik_hostname: ''
 
@@ -38,7 +38,7 @@ authentik_database_username: ''
 authentik_database_password: ''
 authentik_database_version: "16-alpine"
 # Health check configuration for PostgreSQL
-authentik_database_healthcheck_test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+authentik_database_healthcheck_test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
 authentik_database_healthcheck_interval: "30s"
 authentik_database_healthcheck_timeout: "5s"
 authentik_database_healthcheck_retries: 5
@@ -103,12 +103,16 @@ authentik_server_systemd_required_services_list_custom: []
 
 authentik_server_version: "{{ authentik_version }}"
 
+# HTTP and HTTPS ports
 authentik_container_http_port: 9000
+authentik_container_https_port: 9443
 
 # Controls whether the authentik container exposes its HTTP port (as defined by `authentik_container_http_port`).
 #
 # Takes an "<ip>:<port>" or "<port>" value (e.g. "127.0.0.1:8731"), or empty string to not expose.
+# Controls whether the authentik container exposes its HTTP/HTTPS ports
 authentik_container_http_host_bind_port: ""
+authentik_container_https_host_bind_port: ""
 
 # A list of additional container networks that the container would be connected to.
 # The role does not create these networks, so make sure they already exist.
