@@ -22,6 +22,9 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			{% if authentik_container_http_host_bind_port %}
 			-p {{ authentik_container_http_host_bind_port }}:{{ authentik_container_http_port }} \
 			{% endif %}
+			{% if authentik_container_https_host_bind_port %}
+			-p {{ authentik_container_https_host_bind_port }}:{{ authentik_container_https_port }} \
+			{% endif %}
 			--env-file={{ authentik_env_path }} \
 			{% if authentik_container_labels_traefik_enabled %}
 			--label-file={{ authentik_base_path }}/labels \
